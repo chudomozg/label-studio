@@ -19,7 +19,6 @@ from datetime import datetime
 
 from data_manager.prepare_params import ConjunctionEnum
 from queryable_properties.managers import QueryablePropertiesManager, QueryablePropertiesQuerySetMixin
-from label_studio.core.utils.check_field import is_field_property
 from label_studio.core.utils.params import cast_bool_from_str
 from label_studio.core.utils.common import load_func
 from core.feature_flags import flag_set
@@ -314,11 +313,7 @@ def apply_filters(queryset, filters, project, request):
         # get type of annotated field
         value_type = 'str'
         if queryset.exists():
-            if is_field_property(queryset.model, field_name):
-                field_values_list = [prop.storage_filename for prop in queryset]
-            else:
-                field_values_list = queryset.values_list(field_name, flat=True)
-            value_type = type(field_values_list[0]).__name__
+            value_type = type(getattr(queryset.first(), field_name)).__name__
 
         if (value_type == 'list' or value_type == 'tuple') and 'equal' in _filter.operator:
             raise Exception('Not supported filter type')
